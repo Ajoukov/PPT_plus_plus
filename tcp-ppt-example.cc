@@ -14,6 +14,14 @@ int main(int argc, char *argv[])
 {
   CommandLine cmd; cmd.Parse(argc,argv);
   LogComponentEnable("TcpPpt", LOG_LEVEL_INFO);
+  // turn *this* example’s own INFO logs on
+  LogComponentEnable ("PptExample", LOG_LEVEL_INFO);
+  // also turn on TcpPpt’s detailed debug/function logs
+  LogComponentEnable ("TcpPpt",   LOG_LEVEL_FUNCTION);
+  LogComponentEnable ("TcpPpt",   LOG_LEVEL_DEBUG);
+
+  // NS_LOG_COMPONENT_DEFINE ("PptExample");
+  NS_LOG_INFO ("Starting PPT example");
 
   NodeContainer nodes; nodes.Create(2);
   PointToPointHelper p2p;
@@ -32,10 +40,20 @@ int main(int argc, char *argv[])
 
   // Strict‑priority queue: band 0 = high, band 1 = low
   TrafficControlHelper tch;
-  tch.SetRootQueueDisc("ns3::PrioQueueDisc");
-  tch.AddInternalQueues(0, 2, "ns3::DropTailQueue",
-                        "MaxSize", QueueSizeValue(QueueSize("1KiB")));
-  tch.Install(devs);
+  // Tear down _any_ existing root‑queue‑disc on those devices:
+  tch.Uninstall (devs);
+  
+
+  tch.SetRootQueueDisc ("ns3::FqCoDelQueueDisc");
+  // // Now set up exactly one root qdisc, with the exact type+attributes you want:
+  // tch.SetRootQueueDisc ("ns3::DctcpQueueDisc",
+  //                       "MeanPktSize", UintegerValue (1500),
+  //                       "MaxSize", StringValue ("20KiB"));
+  // // …or whatever qdisc and parameters PPT needs…
+  
+  // And finally, install that single root‑qdisc onto all of `devs` at once:
+  tch.Install (devs);
+
 
   // Sink on node 1
   uint16_t port = 9000;
@@ -50,7 +68,8 @@ int main(int argc, char *argv[])
   auto srcApp = bulk.Install(nodes.Get(0));
   srcApp.Start(Seconds(1.0)); srcApp.Stop(Seconds(10.0));
 
-  Simulator::Run(); Simulator::Destroy();
+  Simulator::Run();
+  Simulator::Destroy();
   return 0;
 }
 
