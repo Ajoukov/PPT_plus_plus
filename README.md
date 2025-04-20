@@ -1,25 +1,18 @@
 # Setup
 
 ```bash
-ln -s [path/to/ns-3-dev/] ns-3-dev
-ln -s [path/to/ns-3-dev/src/internet/model/tcp-ppt.cc] tcp-ppt.cc
-ln -s [path/to/ns-3-dev/src/internet/model/tcp-ppt.h]  tcp-ppt.h
+# Create link to cloned ns3 repository
+ln -s [path/to/ns-3-dev/]   ns-3-dev
+
+# Create links to ppt implementation
+ln -s [path/to/ns-3-dev/src/internet/model/tcp-ppt.cc]  tcp-ppt.cc
+ln -s [path/to/ns-3-dev/src/internet/model/tcp-ppt.h]   tcp-ppt.h
+rm    [path/to/ns-3-dev/src/internet/CMakeLists.txt]
+ln -s [path/to/ns-3-dev/src/internet/CMakeLists.txt]    CMakeLists.txt
+
+# Create links to ppt example
+ln -s [path/to/ns-3-dev/src/internet/examples/tcp-ppt-example.cc]   tcp-ppt-example.cc
+rm    [path/to/ns-3-dev/src/internet/examples/CMakeLists.txt]
+ln -s [path/to/ns-3-dev/src/internet/examples/CMakeLists.txt]       examples-CMakeLists.txt
 ```
 
-Append `tcp-ppt.h` and `tcp-ppt.cc` to
-`ns-3-dev/src/internet/model/CMakeLists.txt`
-
-Append
-
-```cmake
-build_lib_example(
-  NAME           tcp-ppt-example
-  SOURCE_FILES   tcp-ppt-example.cc
-  LIBRARIES_TO_LINK
-    ${libinternet}
-    ${libnetwork}        # if you use point‑to‑point/helper
-    ${libapplications}   # for BulkSendHelper, PacketSinkHelper
-    ${libtraffic-control} # for TrafficControlHelper/PrioQueueDisc
-)```
-
-to examples/CMakeLists.txt

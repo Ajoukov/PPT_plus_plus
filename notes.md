@@ -13,11 +13,15 @@ https://www.nsnam.org/docs/release/3.44/tutorial/html/conceptual-overview.html
 
 # Make
 
-```bash
-cd ns-3-dev
-mkdir build-ppt
-cd build-ppt
-cmake ..
-make -j$(nproc)
-```
+[//]: # ```bash
+[//]: # cd ns-3-dev
+[//]: # mkdir build-ppt
+[//]: # cd build-ppt
+[//]: # cmake ..
+[//]: # make -j$(nproc)
+[//]: # ```
+
+./ns3 clean
+./ns3 configure --build-profile=debug --enable-examples --enable-tests
+./ns3 build
 
