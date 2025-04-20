@@ -4,10 +4,13 @@
 
 #include "ns3/tcp-dctcp.h"
 #include "ns3/tcp-socket-state.h"
-#include "ns3/sequence-number.h"
 
 namespace ns3 {
 
+/**
+ * \ingroup tcp
+ * \brief PPT: Pragmatic dual‑loop transport for datacenters
+ */
 class TcpPpt : public TcpDctcp
 {
 public:
@@ -17,7 +20,8 @@ public:
   ~TcpPpt () override;
 
   std::string GetName () const override;
-  Ptr<TcpCongestionOps> Fork () override;
+  Ptr<TcpCongestionOps> Fork () override;   // <-- non‑const
+
   void Init (Ptr<TcpSocketState> tcb) override;
   void PktsAcked (Ptr<TcpSocketState> tcb,
                   uint32_t segmentsAcked,
@@ -26,10 +30,9 @@ public:
                   TcpSocketState::TcpCAEvent_t event) override;
 
 private:
-  bool     m_lcpActive;
-  uint32_t m_lcpCwnd;
-  double   m_alphaMin;
-  SequenceNumber32 m_maxCwnd;
+  bool     m_lcpActive;   //!< is low‑priority loop active?
+  uint32_t m_lcpCwnd;     //!< current LCP cwnd
+  uint32_t m_maxCwnd;     //!< historical max HCP cwnd
 
   void DecayLcp (Ptr<TcpSocketState> tcb);
 };
