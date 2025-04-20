@@ -1,4 +1,4 @@
-# Setup
+# Set up
 
 ```bash
 # Create link to cloned ns3 repository
