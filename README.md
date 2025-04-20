@@ -16,3 +16,11 @@ rm    [path/to/ns-3-dev/src/internet/examples/CMakeLists.txt]
 ln -s [path/to/ns-3-dev/src/internet/examples/CMakeLists.txt]       examples-CMakeLists.txt
 ```
 
+# Build
+
+```bash
+./ns3 clean
+./ns3 configure --build-profile=debug --enable-examples --enable-tests
+./ns3 build
+```
+
