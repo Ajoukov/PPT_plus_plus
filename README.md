@@ -1,4 +1,4 @@
-# Setup
+# Set up
 
 ```bash
 # Create link to cloned ns3 repository
@@ -30,8 +30,10 @@ ns-3-dev/ns3 configure --build-profile=debug --enable-examples --enable-tests
 ns-3-dev/ns3 build
 ```
 
-# Run
-```bash
-ns-3-dev/ns3 run tcp-ppt-example
-```
+Note: you only need build once; rebuilding after making modifications will be done automatically during `./ns3 run ...`.
 
+# Run
+
+```bash
+./ns3 run tcp-ppt-example
+```
