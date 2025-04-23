@@ -13,6 +13,7 @@
 #include "ns3/object.h"
 #include "ns3/sequence-number.h"
 #include "ns3/traced-value.h"
+// #include "tcp-ppt.h"
 
 namespace ns3
 {
@@ -31,11 +32,10 @@ namespace ns3
  */
 class TcpSocketState : public Object
 {
+  public:
     static const uint32_t PPT_LARGE_FLOW_THRESHOLD = 100 * 1024; // 100KB
     uint64_t m_pptBytesSent = 0;           //!< Total bytes sent (for PPT)
     bool     m_pptLargeIdentified = false; //!< True if identified as large flow
-
-  public:
 
     bool IsPptLarge() const { return m_pptLargeIdentified; }
     uint64_t GetPptBytesSent() const { return m_pptBytesSent; }

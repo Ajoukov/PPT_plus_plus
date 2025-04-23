@@ -4,6 +4,7 @@
 
 #include "ns3/tcp-dctcp.h"
 #include "ns3/tcp-socket-state.h"
+#include "ns3/simulator.h"
 
 namespace ns3 {
 
@@ -62,6 +63,8 @@ private:
   bool     m_lcpActive;
   uint32_t m_lcpCwnd;
   uint32_t m_maxCwnd;
+  Ptr<TcpSocketState> m_tcb;
+
 
   void DecayLcp (Ptr<TcpSocketState> tcb)
   {
