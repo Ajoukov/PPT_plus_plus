@@ -3180,13 +3180,15 @@ TcpSocketBase::AddSocketTags(const Ptr<Packet>& p, bool isEct) const
 
     // ==== PPT: mirror‑symmetric priority tagging ====
     uint8_t pptPri = 0;
-    Ptr<TcpPpt> ppt = DynamicCast<TcpPpt>(m_congestionControl);
+    Ptr<TcpPpt> ppt = DynamicCast<TcpPpt> (m_congestionControl);
     if (ppt)
-    {
-        // Determine base index 0–3 by bytes sent / threshold
-        uint64_t sent = m_tcb->m_pptBytesSent;
-        uint32_t idx = std::min<uint32_t>(3, sent / TcpSocketState::PPT_LARGE_FLOW_THRESHOLD);
-        // HCP uses 0–3, LCP uses 4–7
+      {
+        uint64_t sent = m_tcb->GetPptBytesSent ();
+        uint32_t idx = std::min<uint32_t> (
+            3,
+            static_cast<uint32_t>(sent / TcpSocketState::GetPptLargeFlowThreshold ()));
+
+       // HCP uses 0–3, LCP uses 4–7
         if (!ppt->IsLcpActive())
         {
             pptPri = idx;  // high‑priority loop

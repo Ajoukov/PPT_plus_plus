@@ -39,6 +39,14 @@ class TcpSocketState : public Object
 
     bool IsPptLarge() const { return m_pptLargeIdentified; }
     uint64_t GetPptBytesSent() const { return m_pptBytesSent; }
+    
+    void SetPptBytesSent (uint64_t v) { m_pptBytesSent = v; }
+    void SetPptLargeIdentified (bool f) { m_pptLargeIdentified = f; }
+    
+    /**
+     * Accessor for PPT large-flow threshold:
+     */
+    static uint32_t GetPptLargeFlowThreshold () { return PPT_LARGE_FLOW_THRESHOLD; }
 
     /**
      * Get the type ID.
