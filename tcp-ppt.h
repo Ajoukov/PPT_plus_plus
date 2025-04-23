@@ -4,13 +4,10 @@
 
 #include "ns3/tcp-dctcp.h"
 #include "ns3/tcp-socket-state.h"
+#include "ns3/simulator.h"
 
 namespace ns3 {
 
-/**
- * \ingroup tcp
- * \brief PPT: Pragmatic dual‑loop transport for datacenters
- */
 class TcpPpt : public TcpDctcp
 {
 public:
@@ -19,25 +16,31 @@ public:
   TcpPpt (const TcpPpt& sock);
   ~TcpPpt () override;
 
-  std::string GetName () const override;
-  Ptr<TcpCongestionOps> Fork () override;   // <-- non‑const
+  std::string GetName () const override { return "TcpPpt"; }
+  Ptr<TcpCongestionOps> Fork () override { return CopyObject<TcpPpt> (this); }
 
   void Init (Ptr<TcpSocketState> tcb) override;
+
   void PktsAcked (Ptr<TcpSocketState> tcb,
                   uint32_t segmentsAcked,
                   const Time& rtt) override;
+
   void CwndEvent (Ptr<TcpSocketState> tcb,
                   TcpSocketState::TcpCAEvent_t event) override;
+  
+  bool IsLcpActive() const { return m_lcpActive; }
 
 private:
-  bool     m_lcpActive;   //!< is low‑priority loop active?
-  uint32_t m_lcpCwnd;     //!< current LCP cwnd
-  uint32_t m_maxCwnd;     //!< historical max HCP cwnd
 
+  // low-priority loop state
+  bool     m_lcpActive;
+  uint32_t m_lcpCwnd;
+  uint32_t m_maxCwnd;
+  Ptr<TcpSocketState> m_tcb;
+
+  // exponential-decay callback: declared here, defined in tcp-ppt.cc
   void DecayLcp (Ptr<TcpSocketState> tcb);
 };
 
 } // namespace ns3
-
 #endif /* TCP_PPT_H */
-
