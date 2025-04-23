@@ -78,7 +78,7 @@ TcpPpt::CwndEvent (Ptr<TcpSocketState> tcb,
     {
       m_lcpActive = true;
       // start with half of max seen HCP cwnd
-      m_lcpCwnd = std::max<uint32_t> (1, m_maxCwnd / 2);
+      m_lcpCwnd = std::max<uint32_t> (1, m_maxCwnd - tcb->m_cWnd);
       NS_LOG_UNCOND ("[TcpPpt::CwndEvent] LCP activated, initial cwnd = " << m_lcpCwnd);
       // schedule decay
       Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
