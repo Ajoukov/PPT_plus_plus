@@ -174,6 +174,9 @@ class TcpSocketState : public Object
 
     // Congestion control
     TracedValue<uint32_t> m_cWnd{0}; //!< Congestion window
+    uint32_t m_lcWnd{0}; //!<Low Priority cWnd>
+    bool lcpTurn{false};
+    bool lcpActive{false}; 
     TracedValue<uint32_t> m_cWndInfl{
         0}; //!< Inflated congestion window trace (used only for backward compatibility purpose)
     TracedValue<uint32_t> m_ssThresh{0}; //!< Slow start threshold

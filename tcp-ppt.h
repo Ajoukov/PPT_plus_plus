@@ -20,6 +20,7 @@ public:
   Ptr<TcpCongestionOps> Fork () override { return CopyObject<TcpPpt> (this); }
 
   void Init (Ptr<TcpSocketState> tcb) override;
+  void Init (Ptr<TcpSocketState> tcb, double rtt);
 
   void PktsAcked (Ptr<TcpSocketState> tcb,
                   uint32_t segmentsAcked,
