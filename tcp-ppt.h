@@ -41,6 +41,7 @@ private:
 
   // exponential-decay callback: declared here, defined in tcp-ppt.cc
   void DecayLcp (Ptr<TcpSocketState> tcb);
+  void TestFunc (Ptr<TcpSocketState> tcb);
 };
 
 } // namespace ns3

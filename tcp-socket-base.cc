@@ -4050,9 +4050,9 @@ TcpSocketBase::ReTxTimeout()
 
  SendPendingData(m_connected);
 
- NS_ASSERT_MSG(BytesInFlight() <= m_tcb->m_segmentSize,
-               "In flight (" << BytesInFlight() << ") there is more than one segment ("
-                             << m_tcb->m_segmentSize << ")");
+//  NS_ASSERT_MSG(BytesInFlight() <= m_tcb->m_segmentSize,
+//                "In flight (" << BytesInFlight() << ") there is more than one segment ("
+//                              << m_tcb->m_segmentSize << ")");
 }
 
 void

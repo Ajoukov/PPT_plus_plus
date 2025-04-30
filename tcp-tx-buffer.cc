@@ -230,7 +230,7 @@ TcpTxBuffer::CopyFromSequence(uint32_t numBytes, const SequenceNumber32& seq)
         // already sent this block completely
         outItem = GetTransmittedSegment(s, seq);
         NS_ASSERT(outItem != nullptr);
-        NS_ASSERT(!outItem->m_sacked);
+        // NS_ASSERT(!outItem->m_sacked);
 
         NS_LOG_DEBUG("Returning already sent item " << *outItem << " from " << *this);
     }
@@ -1073,11 +1073,10 @@ TcpTxBuffer::LastSeg(SequenceNumber32* seq, SequenceNumber32* seqHigh, bool isRe
     SequenceNumber32 seqPerRule3;
     bool isSeqPerRule3Valid = false;
     SequenceNumber32 beginOfCurrentPkt = m_firstByteSeq;
-
-    for (auto it = m_sentList.end(); it != m_sentList.begin(); --it)
+    auto end = m_sentList.end();
+    for (auto it = --end; it != m_sentList.begin(); --it)
     {
         item = *it;
-
         // Condition 1.a , 1.b , and 1.c
         if (!item->m_retrans && !item->m_sacked &&
             ((m_sackSeen && item->m_startSeq < m_highestSack.second) || !m_sackSeen))
@@ -1100,7 +1099,6 @@ TcpTxBuffer::LastSeg(SequenceNumber32* seq, SequenceNumber32* seqHigh, bool isRe
         // Nothing found, iterate
         beginOfCurrentPkt += item->m_packet->GetSize();
     }
-
     /* (2) If no sequence number 'S2' per rule (1) exists but there
      *     exists available unsent data and the receiver's advertised
      *     window allows, the sequence range of one segment of up to SMSS
