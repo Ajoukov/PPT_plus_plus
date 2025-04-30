@@ -107,21 +107,59 @@ int main (int argc, char *argv[]) {
             Simulator::Schedule(Seconds(t), [&, i, t]() mutable {
                 auto dst =
 sinks[urv->GetInteger(0, num_destinations - 1)];
-                auto bytes =
-UintegerValue(xm / std::pow(1.0 - urv->GetValue(), 1.0/alpha));
+                int bytes_log = xm / std::pow(1.0 - urv->GetValue(), 1.0/alpha);
+                auto bytes = UintegerValue(bytes_log);
                 auto addr =
 AddressValue(InetSocketAddress(Ipv4Address::GetAny(), port_counter));
+                NS_LOG_UNCOND("XXX: Bytes: " << bytes_log << "\n");
 
                 BulkSendHelper bulk("ns3::TcpSocketFactory", dst);
                 bulk.SetAttribute("MaxBytes", bytes);
                 bulk.SetAttribute("Local", addr);
-                port_counter++;
+                port_counter ++;
                 auto a = bulk.Install(sources.Get(i));
                 a.Start(Seconds(t));
                 a.Stop(Seconds(sim_time + 1.0));
             });
         }
     }
-    Simulator::Stop (Seconds (sim_time + 2.0));
+
+    FlowMonitorHelper fm;
+    auto monitor = fm.InstallAll();
+
+    Simulator::Stop(Seconds(sim_time + 2.0));
     Simulator::Run();
+
+    Ptr<Ipv4FlowClassifier> classifier =
+        DynamicCast<Ipv4FlowClassifier>(fm.GetClassifier());
+
+    double total_fct = 0;
+    int n_samples = 0;
+
+    for (auto &kv : monitor->GetFlowStats()) {
+        const auto &st = kv.second;
+
+        if (st.rxPackets == 0)
+            continue;
+
+        double t0 = st.timeFirstTxPacket.GetSeconds();
+        double t1 = st.timeLastRxPacket.GetSeconds();
+        if (t1 < t0) // negative means ACKs b/c numbers are reversed
+            continue;
+
+        auto ft = classifier->FindFlow(kv.first);
+        uint16_t port = ft.destinationPort;
+        // not one of our BulkSend sinks
+        if (port < base_port || port >= base_port + num_destinations)
+            continue;
+
+        n_samples ++;
+        total_fct += t1 - t0;
+
+    }
+
+    std::cout << "Average FCT: " << (total_fct / n_samples * 1000) << "ms" << std::endl;
+
+    Simulator::Destroy ();
+
 }
