@@ -16,12 +16,12 @@
 
 using namespace ns3;
 
-void PrintTime () {
+void PrintTime() {
   std::cout << "Sim time: " << Simulator::Now().GetSeconds() << " s\n";
   Simulator::Schedule(Seconds(0.1), &PrintTime);
 }
 
-int main (int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
     int n_sources = 15;
     int n_dests = 15;
     int base_port = 8000;
@@ -33,26 +33,26 @@ int main (int argc, char *argv[]) {
     double link_rate_mbps = 40e3;
 
     CommandLine cmd;
-    cmd.AddValue ("sim_time",  "Simulation time (s)",            sim_time);
-    cmd.AddValue ("load",      "Offered traffic load (0.0-1.0)", load);
-    cmd.AddValue ("workload",  "0=WebSearch,1=DataMining",       workload);
-    cmd.AddValue ("transport", "0=PPT,1=DCTCP,2=Cubic",          transport);
-    cmd.AddValue ("n_sources", "Number of sources",              n_sources);
-    cmd.AddValue ("n_dests",   "Number of destinations",         n_dests);
-    cmd.Parse (argc, argv);
+    cmd.AddValue("sim_time",  "Simulation time (s)",            sim_time);
+    cmd.AddValue("load",      "Offered traffic load (0.0-1.0)", load);
+    cmd.AddValue("workload",  "0=WebSearch,1=DataMining",       workload);
+    cmd.AddValue("transport", "0=PPT,1=DCTCP,2=Cubic",          transport);
+    cmd.AddValue("n_sources", "Number of sources",              n_sources);
+    cmd.AddValue("n_dests",   "Number of destinations",         n_dests);
+    cmd.Parse(argc, argv);
 
     // Pareto numbers according to paper
     double alpha = 1.5;
     double xm = workload == 0 ? 533333.0 : 2.47e6;
 
-    Config::SetDefault ("ns3::TcpSocketBase::UseEcn", EnumValue(TcpSocketState::On));
+    Config::SetDefault("ns3::TcpSocketBase::UseEcn", EnumValue(TcpSocketState::On));
     switch (transport) {
         case (0):
-            Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpPpt::GetTypeId())); break;
+            Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpPpt::GetTypeId())); break;
         case (1):
-            Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpDctcp::GetTypeId())); break;
+            Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpDctcp::GetTypeId())); break;
         case (2):
-            Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpCubic::GetTypeId())); break;
+            Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpCubic::GetTypeId())); break;
     }
 
     int n_servers = 144;
@@ -193,12 +193,10 @@ int main (int argc, char *argv[]) {
 
         n_samples ++;
         total_fct += t1 - t0;
-
     }
 
     std::cout << "Average FCT: " <<
         (total_fct / n_samples * 1000) << "ms" << std::endl;
 
-    Simulator::Destroy ();
-
+    Simulator::Destroy();
 }
