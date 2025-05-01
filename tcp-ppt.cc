@@ -46,7 +46,8 @@ TcpPpt::Init (Ptr<TcpSocketState> tcb)
   TcpDctcp::Init (tcb);
   m_tcb = tcb;
   tcb->lcpActive = false;
-  m_maxCwnd = tcb->m_cWnd;
+  tcb->prev_m_cWnd = 0;
+  m_maxCwnd = 0;
 }
 void
 TcpPpt::Init (Ptr<TcpSocketState> tcb, double rtt)
@@ -54,11 +55,13 @@ TcpPpt::Init (Ptr<TcpSocketState> tcb, double rtt)
   NS_LOG_UNCOND ("[TcpPpt::Init] TcpPpt initialized");
   TcpDctcp::Init (tcb);
   m_tcb = tcb;
-  tcb->m_lcWnd = tcb->m_segmentSize * 10;
+  // tcb->m_lcWnd = 10;
   tcb->lcpActive = true;
-  m_maxCwnd = tcb->m_cWnd;
-  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] LCP activated, initial cwnd = " << tcb->m_lcWnd);
-  Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
+  m_maxCwnd = 0;
+  // tcb->m_lcWnd = m_maxCwnd;
+  // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] HCP activated, initial cwnd = " << tcb->m_cWnd);
+  // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] LCP activated, initial cwnd = " << tcb->m_lcWnd);
+  // Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
 }
 
 void
@@ -68,30 +71,42 @@ TcpPpt::PktsAcked (Ptr<TcpSocketState> tcb,
 {
   TcpDctcp::PktsAcked (tcb, segmentsAcked, rtt);
   // update historical max HCP cwnd
-  if (!tcb->lcpActive && tcb->m_cWnd > m_maxCwnd)
-    {
-      m_maxCwnd = tcb->m_cWnd;
-    }
 }
 
 void
 TcpPpt::CwndEvent (Ptr<TcpSocketState> tcb,
                    TcpSocketState::TcpCAEvent_t event)
 {
-  // always run standard DCTCP behavior
-  TcpDctcp::CwndEvent (tcb, event);
-
-  // Launch LCP on first ECN indication
-  if (!tcb->lcpActive && event == TcpSocketState::CA_EVENT_ECN_IS_CE)
+  if (tcb->m_ssThresh != 4294967295) {
+    if (!tcb->lcpActive && tcb->m_cWnd > m_maxCwnd)
     {
-      tcb->lcpActive = true;
-      // start with half of max seen HCP cwnd
-      tcb->m_lcWnd = std::max<uint32_t> (tcb->m_cWnd, m_maxCwnd - tcb->m_cWnd);
-      // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] LCP activated, initial cwnd = " << tcb->m_lcWnd);
-      // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] HCP activated, initial cwnd = " << tcb->m_cWnd);
-      // schedule decay
-      Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
+      m_maxCwnd = tcb->m_cWnd;
     }
+    // always run standard DCTCP behavior
+    // NS_LOG_UNCOND ("[TcpPpt::Hcp] HCP Activated " << tcb->m_cWnd);
+    TcpDctcp::CwndEvent (tcb, event);
+    int temp_var = tcb->prev_m_cWnd;
+    tcb->prev_m_cWnd = tcb->m_cWnd;
+    // Launch LCP on first ECN indication
+    if (!tcb->lcpActive && ((int) tcb->m_cWnd - temp_var) < 0)
+      {
+        TcpPpt::TestFunc(tcb);
+      }
+    }
+}
+
+void 
+TcpPpt::TestFunc(Ptr<TcpSocketState> tcb)
+{
+  tcb->lcpActive = true;
+  NS_LOG_UNCOND ("[TcpPpt::Lcp] LCP Activated");
+  tcb->m_lcWnd = m_maxCwnd - tcb->m_cWnd;
+  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] LCP, initial cwnd = " << tcb->m_lcWnd);
+  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] HCP, initial cwnd = " << tcb->m_cWnd);
+  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] MAX CWND, max cwnd = " << m_maxCwnd);
+  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] rtt = " << tcb->m_srtt);
+  // schedule decay
+  Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
 }
 
 void
