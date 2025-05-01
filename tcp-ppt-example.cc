@@ -30,7 +30,8 @@ int main(int argc, char *argv[]) {
     double load = 0.5;
     int workload = 0;
     int transport = 0;
-    double link_rate_mbps = 40e3;
+    double link_rate_gbps = 40;
+    double core_rate_gbps = 100;
 
     CommandLine cmd;
     cmd.AddValue("sim_time",  "Simulation time (s)",            sim_time);
@@ -69,11 +70,11 @@ int main(int argc, char *argv[]) {
     stack.Install(spines);
 
     PointToPointHelper edge;
-    edge.SetDeviceAttribute("DataRate", StringValue("40Gbps"));
+    edge.SetDeviceAttribute("DataRate", StringValue(std::to_string(link_rate_gbps) + "Gbps"));
     edge.SetChannelAttribute("Delay", StringValue("0.1ms"));
 
     PointToPointHelper core;
-    core.SetDeviceAttribute("DataRate", StringValue("100Gbps"));
+    core.SetDeviceAttribute("DataRate", StringValue(std::to_string(core_rate_gbps) + "Gbps"));
     core.SetChannelAttribute("Delay", StringValue("0.5ms"));
 
     Ipv4AddressHelper addr;
@@ -132,7 +133,7 @@ int main(int argc, char *argv[]) {
     urv->SetAttribute("Max", DoubleValue(1.0));
 
     double mean_size = alpha * xm / (alpha - 1);
-    double capacity = link_rate_mbps * 1e6; // bits/s
+    double capacity = link_rate_gbps * 1e9; // bits/s
     double lambda_src = load * capacity / (n_sources * mean_size * 8.0);
     NS_LOG_UNCOND("Mean number of flows per source: " << lambda_src);
     Ptr<ExponentialRandomVariable> erv = CreateObject<ExponentialRandomVariable>();
