@@ -16,27 +16,29 @@
 
 using namespace ns3;
 
-int main (int argc, char *argv[]) {
-    int         num_sources         = 15;
-    int         num_destinations    = 15;
-    int         base_port           = 8000;
+void PrintTime () {
+  std::cout << "Sim time: " << Simulator::Now().GetSeconds() << " s\n";
+  Simulator::Schedule(Seconds(0.1), &PrintTime);
+}
 
-    int         full_mesh           = 0;    // false=Poisson arrivals
-    double      sim_time            = 10.0; // seconds
-    double      flow_rate           = 1.0;  // Hz per source (for Poisson)
-    double      link_rate_mbps      = 50.0; // Mbps on CSMA
-    double      link_delay_ms       = 5.0;  // ms one-way
-    int         workload            = 0;
-    int         transport           = 0;
+int main (int argc, char *argv[]) {
+    int n_sources = 15;
+    int n_dests = 15;
+    int base_port = 8000;
+
+    double sim_time = 10.0; // seconds
+    double load = 0.5;
+    int workload = 0;
+    int transport = 0;
+    double link_rate_mbps = 40e3;
 
     CommandLine cmd;
-    cmd.AddValue ("full_mesh",    "true=full mesh, false=Poisson",  full_mesh);
-    cmd.AddValue ("sim_time",     "Simulation time (s)",            sim_time);
-    cmd.AddValue ("flow_rate",    "Poisson rate per source (Hz)",   flow_rate);
-    cmd.AddValue ("link_rate",    "CSMA data rate (Mbps)",          link_rate_mbps);
-    cmd.AddValue ("link_delay",   "CSMA delay (ms)",                link_delay_ms);
-    cmd.AddValue ("workload",     "0=WebSearch,1=DataMining",       workload);
-    cmd.AddValue ("transport",    "0=PPT,1=DCTCP,2=Cubic",          transport);
+    cmd.AddValue ("sim_time",  "Simulation time (s)",            sim_time);
+    cmd.AddValue ("load",      "Offered traffic load (0.0-1.0)", load);
+    cmd.AddValue ("workload",  "0=WebSearch,1=DataMining",       workload);
+    cmd.AddValue ("transport", "0=PPT,1=DCTCP,2=Cubic",          transport);
+    cmd.AddValue ("n_sources", "Number of sources",              n_sources);
+    cmd.AddValue ("n_dests",   "Number of destinations",         n_dests);
     cmd.Parse (argc, argv);
 
     // Pareto numbers according to paper
@@ -53,79 +55,113 @@ int main (int argc, char *argv[]) {
             Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpCubic::GetTypeId())); break;
     }
 
+    int n_servers = 144;
+    int n_leaves = 9;
+    int n_spines = 4;
+    int n_servers_per_leaf = 16;
+    NodeContainer servers; servers.Create(n_servers);
+    NodeContainer leaves; leaves.Create(n_leaves);
+    NodeContainer spines; spines.Create(n_spines);
+
+    InternetStackHelper stack;
+    stack.Install(servers);
+    stack.Install(leaves);
+    stack.Install(spines);
+
+    PointToPointHelper edge;
+    edge.SetDeviceAttribute("DataRate", StringValue("40Gbps"));
+    edge.SetChannelAttribute("Delay", StringValue("0.1ms"));
+
+    PointToPointHelper core;
+    core.SetDeviceAttribute("DataRate", StringValue("100Gbps"));
+    core.SetChannelAttribute("Delay", StringValue("0.5ms"));
+
+    Ipv4AddressHelper addr;
+    std::ostringstream subnet;
+
+    // leaves end up with 2 IPs, one for server-side and one for core-side interactions
+    for (int i = 0; i < n_leaves; i++) {
+        for (int j = 0; j < n_spines; j++) {
+            NodeContainer pair(leaves.Get(i), spines.Get(j));
+            NetDeviceContainer devs = core.Install(pair);
+            subnet.str(""); subnet.clear();
+            subnet << "1." << j << "." << i << ".0";
+            addr.SetBase(subnet.str().c_str(), "255.255.255.252");
+            addr.Assign(devs);
+        }
+    }
+
+    for (int i = 0; i < n_leaves; i++) {
+        for (int j = 0; j < n_servers_per_leaf; j++) {
+            int idx = i * n_servers_per_leaf + j;
+            NodeContainer pair(servers.Get(idx), leaves.Get(i));
+            NetDeviceContainer devs = edge.Install(pair);
+            std::ostringstream sn;
+            sn << "2."<< i << "." << j << ".0";
+            addr.SetBase(sn.str().c_str(), "255.255.255.0");
+            Ipv4InterfaceContainer ifc = addr.Assign(devs);
+        }
+    }
+
     NodeContainer sources;
-    sources.Create(num_sources);
+    for (int i = 0; i < n_sources; i++)
+        sources.Add(servers.Get(i));
+
+    // we add n_sources to prevent overlap
     NodeContainer destinations;
-    destinations.Create(num_destinations);
-    NodeContainer all;
-    all.Add(sources);
-    all.Add(destinations);
-
-    CsmaHelper csma;
-    csma.SetChannelAttribute("DataRate",
-            StringValue (std::to_string(link_rate_mbps) + "Mbps"));
-    csma.SetChannelAttribute("Delay",
-            StringValue (std::to_string(link_delay_ms) + "ms"));
-    NetDeviceContainer devices = csma.Install(all);
-
-    // To use p2p we'll need to create individual connections for each src-dst pair (for{for{}})
-    // PointToPointHelper p2p;
-    // p2p.SetDeviceAttribute("DataRate",
-    //         StringValue(std::to_string(link_rate_mbps) + "Mbps"));
-    // p2p.SetChannelAttribute("Delay",
-    //         StringValue(std::to_string(link_delay_ms) + "ms"));
-    // auto devices = p2p.Install(all);
-
-    InternetStackHelper inet;
-    inet.Install(all);
-
-    Ipv4AddressHelper addr ("10.1.1.0", "255.255.255.0");
-    auto ifs = addr.Assign(devices);
+    for (int i = 0; i < n_dests; i++)
+        destinations.Add(servers.Get(i + n_sources));
 
     std::vector<InetSocketAddress> sinks;
-    for (int i = 0; i < num_destinations; i++) {
-        InetSocketAddress isa(ifs.GetAddress(num_sources + i), base_port + i);
+    for (int i = 0; i < n_sources; i++) {
+        Ptr<Node> dest = destinations.Get(i);
+        Ptr<Ipv4> ipv4 = dest->GetObject<Ipv4>();
+        Ipv4Address ip = ipv4->GetAddress(1,0).GetLocal();
+        InetSocketAddress isa(ip, base_port + i);
         PacketSinkHelper ps("ns3::TcpSocketFactory", isa);
-        auto app = ps.Install(destinations.Get(i));
-        app.Start(Seconds(0.0));
-        app.Stop(Seconds(sim_time + 1.0));
+        ApplicationContainer apps = ps.Install(destinations.Get(i));
+        apps.Start(Seconds(0.0));
+        apps.Stop(Seconds(sim_time + 1.0));
         sinks.push_back(isa);
     }
 
-    Ptr<UniformRandomVariable> urv =
-        CreateObject<UniformRandomVariable>();
+    Ipv4GlobalRoutingHelper::PopulateRoutingTables();
+
+    Ptr<UniformRandomVariable> urv = CreateObject<UniformRandomVariable>();
     urv->SetAttribute("Min", DoubleValue(0.0));
     urv->SetAttribute("Max", DoubleValue(1.0));
-    Ptr<ExponentialRandomVariable> erv =
-        CreateObject<ExponentialRandomVariable>();
-    erv->SetAttribute("Mean", DoubleValue(1.0 / flow_rate));
 
-    int port_counter = base_port + num_destinations + 1000;
+    double mean_size = alpha * xm / (alpha - 1);
+    double capacity = link_rate_mbps * 1e6; // bits/s
+    double lambda_src = load * capacity / (n_sources * mean_size * 8.0);
+    NS_LOG_UNCOND("Mean load: " << lambda_src);
+    Ptr<ExponentialRandomVariable> erv = CreateObject<ExponentialRandomVariable>();
+    erv->SetAttribute("Mean", DoubleValue(1.0 / lambda_src));
 
-    for (int i = 0; i < num_sources; i++) {
+    int port_counter = base_port + 1000; // any free range
+    for (int i = 0; i < n_sources; i++) {
         for (double t = erv->GetValue(); t < sim_time; t += erv->GetValue()) {
-            Simulator::Schedule(Seconds(t), [&, i, t]() mutable {
-                auto dst =
-sinks[urv->GetInteger(0, num_destinations - 1)];
-                int bytes_log = xm / std::pow(1.0 - urv->GetValue(), 1.0/alpha);
-                auto bytes = UintegerValue(bytes_log);
-                auto addr =
-AddressValue(InetSocketAddress(Ipv4Address::GetAny(), port_counter));
-                NS_LOG_UNCOND("XXX: Bytes: " << bytes_log << "\n");
-
+            Simulator::Schedule(Seconds(t), [&,i,t]() {
+                auto dst = sinks[urv->GetInteger(0, sinks.size() - 1)];
                 BulkSendHelper bulk("ns3::TcpSocketFactory", dst);
-                bulk.SetAttribute("MaxBytes", bytes);
-                bulk.SetAttribute("Local", addr);
-                port_counter ++;
-                auto a = bulk.Install(sources.Get(i));
-                a.Start(Seconds(t));
-                a.Stop(Seconds(sim_time + 1.0));
+                bulk.SetAttribute("MaxBytes",
+                        UintegerValue( xm/std::pow(1.0-urv->GetValue(),1.0/alpha) ));
+                bulk.SetAttribute("Local",
+                        AddressValue(InetSocketAddress(Ipv4Address::GetAny(), port_counter++)));
+
+                ApplicationContainer apps = bulk.Install(sources.Get(i));
+                apps.Start(Seconds(t));
+                apps.Stop(Seconds(sim_time + 1.0));
             });
         }
     }
 
     FlowMonitorHelper fm;
     auto monitor = fm.InstallAll();
+
+    NS_LOG_UNCOND("Starting the simulation");
+
+    Simulator::Schedule(Seconds(0.0), &PrintTime);
 
     Simulator::Stop(Seconds(sim_time + 2.0));
     Simulator::Run();
@@ -147,10 +183,12 @@ AddressValue(InetSocketAddress(Ipv4Address::GetAny(), port_counter));
         if (t1 < t0) // negative means ACKs b/c numbers are reversed
             continue;
 
+        // std::cout << "End time: " << t1 << std::endl;
+
         auto ft = classifier->FindFlow(kv.first);
         uint16_t port = ft.destinationPort;
         // not one of our BulkSend sinks
-        if (port < base_port || port >= base_port + num_destinations)
+        if (port < base_port || port >= base_port + n_dests)
             continue;
 
         n_samples ++;
@@ -158,7 +196,8 @@ AddressValue(InetSocketAddress(Ipv4Address::GetAny(), port_counter));
 
     }
 
-    std::cout << "Average FCT: " << (total_fct / n_samples * 1000) << "ms" << std::endl;
+    std::cout << "Average FCT: " <<
+        (total_fct / n_samples * 1000) << "ms" << std::endl;
 
     Simulator::Destroy ();
 
