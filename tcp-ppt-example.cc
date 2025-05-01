@@ -134,7 +134,7 @@ int main (int argc, char *argv[]) {
     double mean_size = alpha * xm / (alpha - 1);
     double capacity = link_rate_mbps * 1e6; // bits/s
     double lambda_src = load * capacity / (n_sources * mean_size * 8.0);
-    NS_LOG_UNCOND("Mean load: " << lambda_src);
+    NS_LOG_UNCOND("Mean number of flows per source: " << lambda_src);
     Ptr<ExponentialRandomVariable> erv = CreateObject<ExponentialRandomVariable>();
     erv->SetAttribute("Mean", DoubleValue(1.0 / lambda_src));
 
