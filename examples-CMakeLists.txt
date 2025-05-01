@@ -31,8 +31,11 @@ build_lib_example(
   SOURCE_FILES   tcp-ppt-example.cc
   LIBRARIES_TO_LINK
     ${libinternet}
-    ${libnetwork}        # if you use point‑to‑point/helper
-    ${libapplications}   # for BulkSendHelper, PacketSinkHelper
-    ${libtraffic-control} # for TrafficControlHelper/PrioQueueDisc
-    ${libpoint-to-point}    # ← add this line
+    ${libnetwork}
+    ${libapplications}
+    ${libtraffic-control}
+    ${libpoint-to-point}
+    ${libcsma}
+    ${libflow-monitor}
 )
+
