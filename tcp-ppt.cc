@@ -2,8 +2,11 @@
 #include "tcp-ppt.h"
 #include "ns3/log.h"
 #include "ns3/simulator.h"
+#include <fstream>
 
 namespace ns3 {
+
+static std::ofstream g_lcpLog ("cwnd_sizes.log", std::ios::out);
 
 NS_LOG_COMPONENT_DEFINE ("TcpPpt");
 
@@ -42,7 +45,7 @@ TcpPpt::~TcpPpt ()
 void
 TcpPpt::Init (Ptr<TcpSocketState> tcb)
 {
-  NS_LOG_UNCOND ("[TcpPpt::Init] TcpPpt initialized");
+  // NS_LOG_UNCOND ("[TcpPpt::Init] TcpPpt initialized");
   TcpDctcp::Init (tcb);
   m_tcb = tcb;
   tcb->lcpActive = false;
@@ -52,7 +55,7 @@ TcpPpt::Init (Ptr<TcpSocketState> tcb)
 void
 TcpPpt::Init (Ptr<TcpSocketState> tcb, double rtt)
 {
-  NS_LOG_UNCOND ("[TcpPpt::Init] TcpPpt initialized");
+  // NS_LOG_UNCOND ("[TcpPpt::Init] TcpPpt initialized");
   TcpDctcp::Init (tcb);
   m_tcb = tcb;
   // tcb->m_lcWnd = 10;
@@ -92,6 +95,18 @@ TcpPpt::CwndEvent (Ptr<TcpSocketState> tcb,
       {
         TcpPpt::TestFunc(tcb);
       }
+
+      {
+        double now = Simulator::Now().GetSeconds ();
+        long id = (long)&*tcb;
+        g_lcpLog << now
+             << "\t" << id
+             << "\t" << tcb->m_cWnd    // HCP cwnd
+             << "\t" << tcb->m_lcWnd   // LCP cwnd
+             << "\n";
+        g_lcpLog.flush ();
+      }
+
     }
 }
 
@@ -99,12 +114,22 @@ void
 TcpPpt::TestFunc(Ptr<TcpSocketState> tcb)
 {
   tcb->lcpActive = true;
-  NS_LOG_UNCOND ("[TcpPpt::Lcp] LCP Activated");
+  // NS_LOG_UNCOND ("[TcpPpt::Lcp] LCP Activated");
   tcb->m_lcWnd = m_maxCwnd - tcb->m_cWnd;
-  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] LCP, initial cwnd = " << tcb->m_lcWnd);
-  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] HCP, initial cwnd = " << tcb->m_cWnd);
-  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] MAX CWND, max cwnd = " << m_maxCwnd);
-  NS_LOG_UNCOND ("[TcpPpt::CwndEvent] rtt = " << tcb->m_srtt);
+  {
+    double now = Simulator::Now().GetSeconds ();
+    long id = (long)&*tcb;
+    g_lcpLog << now
+         << "\t" << id
+         << "\t" << tcb->m_cWnd    // HCP cwnd
+         << "\t" << tcb->m_lcWnd   // LCP cwnd
+         << "\n";
+    g_lcpLog.flush ();
+  }
+  // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] LCP, initial cwnd = " << tcb->m_lcWnd);
+  // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] HCP, initial cwnd = " << tcb->m_cWnd);
+  // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] MAX CWND, max cwnd = " << m_maxCwnd);
+  // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] rtt = " << tcb->m_srtt);
   // schedule decay
   Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
 }
@@ -112,17 +137,27 @@ TcpPpt::TestFunc(Ptr<TcpSocketState> tcb)
 void
 TcpPpt::DecayLcp (Ptr<TcpSocketState> tcb)
 {
-  uint32_t old = tcb->m_lcWnd;
+  // uint32_t old = tcb->m_lcWnd;
   // exponential window decrease: half each RTT
   tcb->m_lcWnd = std::max<uint32_t> (1, tcb->m_lcWnd / 2);
+  {
+    double now = Simulator::Now().GetSeconds ();
+    long id = (long)&*tcb;
+    g_lcpLog << now
+         << "\t" << id
+         << "\t" << tcb->m_cWnd    // HCP cwnd
+         << "\t" << tcb->m_lcWnd   // LCP cwnd
+         << "\n";
+    g_lcpLog.flush ();
+  }
   if (tcb->m_lcWnd <= 1)
     {
       tcb->lcpActive = false;
-      NS_LOG_UNCOND ("[TcpPpt::DecayLcp] LCP deactivated");
+      // NS_LOG_UNCOND ("[TcpPpt::DecayLcp] LCP deactivated");
     }
   else
     {
-      NS_LOG_UNCOND ("[TcpPpt::DecayLcp] cwnd decayed: " << old << " -> " << tcb->m_lcWnd);
+      // NS_LOG_UNCOND ("[TcpPpt::DecayLcp] cwnd decayed: " << old << " -> " << tcb->m_lcWnd);
       // schedule next decay
       Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
     }
