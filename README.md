@@ -52,3 +52,10 @@ ns-3-dev/ns3 run tcp-ppt-example -- \
     --n_sources=15 \
     --n_dests=15
 ```
+
+To analyze cwnd sizes after running a simulation, run the following.
+```bash
+python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
+```
+
+
