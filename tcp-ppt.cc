@@ -80,34 +80,53 @@ void
 TcpPpt::CwndEvent (Ptr<TcpSocketState> tcb,
                    TcpSocketState::TcpCAEvent_t event)
 {
-  if (tcb->m_ssThresh != 4294967295) {
-    if (!tcb->lcpActive && tcb->m_cWnd > m_maxCwnd)
-    {
-      m_maxCwnd = tcb->m_cWnd;
-    }
-    // always run standard DCTCP behavior
-    // NS_LOG_UNCOND ("[TcpPpt::Hcp] HCP Activated " << tcb->m_cWnd);
-    TcpDctcp::CwndEvent (tcb, event);
-    int temp_var = tcb->prev_m_cWnd;
-    tcb->prev_m_cWnd = tcb->m_cWnd;
-    // Launch LCP on first ECN indication
-    if (!tcb->lcpActive && ((int) tcb->m_cWnd - temp_var) < 0)
-      {
-        TcpPpt::TestFunc(tcb);
-      }
+  // always run standard DCTCP behavior
+  TcpDctcp::CwndEvent (tcb, event);
 
-      {
-        double now = Simulator::Now().GetSeconds ();
-        long id = (long)&*tcb;
-        g_lcpLog << now
-             << "\t" << id
-             << "\t" << tcb->m_cWnd    // HCP cwnd
-             << "\t" << tcb->m_lcWnd   // LCP cwnd
-             << "\n";
-        g_lcpLog.flush ();
-      }
+  int prev_m_cWnd = tcb->prev_m_cWnd;
+  tcb->prev_m_cWnd = tcb->m_cWnd;
 
-    }
+  if (tcb->m_cWnd > m_maxCwnd)
+    m_maxCwnd = tcb->m_cWnd;
+
+  // don't check for LCP changes if ssThresh is INT_MAX
+  // if (tcb->m_ssThresh == 4294967295) { // log
+  //   double now = Simulator::Now().GetSeconds ();
+  //   long id = (long)&*tcb;
+  //   g_lcpLog << now
+  //        << "\t" << id
+  //        << "\t" << tcb->m_cWnd    // HCP cwnd
+  //        << "\t" << tcb->m_lcWnd   // LCP cwnd
+  //        << "\t" << m_maxCwnd
+  //        << "\n";
+  //   g_lcpLog.flush ();
+  //   return;
+  // }
+
+  // NS_LOG_UNCOND ("[TcpPpt::Hcp] HCP Activated " << tcb->m_cWnd);
+  // if (!tcb->lcpActive && tcb->m_cWnd > m_maxCwnd)
+
+  // Launch LCP on first ECN indication
+  // if (!tcb->lcpActive && event == TcpSocketState::CA_EVENT_ECN_IS_CE)
+
+  if ((int)tcb->m_cWnd < prev_m_cWnd) {
+    tcb->m_lcWnd += m_maxCwnd - tcb->m_cWnd;
+    m_maxCwnd = tcb->m_cWnd;
+  }
+  if (!tcb->lcpActive && (int)tcb->m_cWnd < prev_m_cWnd)
+    TcpPpt::TestFunc(tcb);
+
+  { // log
+    double now = Simulator::Now().GetSeconds ();
+    long id = (long)&*tcb;
+    g_lcpLog << now
+         << "\t" << id
+         << "\t" << tcb->m_cWnd    // HCP cwnd
+         << "\t" << tcb->m_lcWnd   // LCP cwnd
+         << "\t" << m_maxCwnd
+         << "\n";
+    g_lcpLog.flush ();
+  }
 }
 
 void 
@@ -115,17 +134,9 @@ TcpPpt::TestFunc(Ptr<TcpSocketState> tcb)
 {
   tcb->lcpActive = true;
   // NS_LOG_UNCOND ("[TcpPpt::Lcp] LCP Activated");
-  tcb->m_lcWnd = m_maxCwnd - tcb->m_cWnd;
-  {
-    double now = Simulator::Now().GetSeconds ();
-    long id = (long)&*tcb;
-    g_lcpLog << now
-         << "\t" << id
-         << "\t" << tcb->m_cWnd    // HCP cwnd
-         << "\t" << tcb->m_lcWnd   // LCP cwnd
-         << "\n";
-    g_lcpLog.flush ();
-  }
+  // tcb->m_lcWnd += m_maxCwnd - tcb->m_cWnd;
+  // m_maxCwnd = tcb->m_cWnd;
+
   // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] LCP, initial cwnd = " << tcb->m_lcWnd);
   // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] HCP, initial cwnd = " << tcb->m_cWnd);
   // NS_LOG_UNCOND ("[TcpPpt::CwndEvent] MAX CWND, max cwnd = " << m_maxCwnd);
@@ -139,6 +150,7 @@ TcpPpt::DecayLcp (Ptr<TcpSocketState> tcb)
 {
   // uint32_t old = tcb->m_lcWnd;
   // exponential window decrease: half each RTT
+
   tcb->m_lcWnd = std::max<uint32_t> (1, tcb->m_lcWnd / 2);
   {
     double now = Simulator::Now().GetSeconds ();
@@ -147,20 +159,26 @@ TcpPpt::DecayLcp (Ptr<TcpSocketState> tcb)
          << "\t" << id
          << "\t" << tcb->m_cWnd    // HCP cwnd
          << "\t" << tcb->m_lcWnd   // LCP cwnd
+         << "\t" << m_maxCwnd
          << "\n";
     g_lcpLog.flush ();
   }
-  if (tcb->m_lcWnd <= 1)
-    {
-      tcb->lcpActive = false;
-      // NS_LOG_UNCOND ("[TcpPpt::DecayLcp] LCP deactivated");
-    }
-  else
-    {
-      // NS_LOG_UNCOND ("[TcpPpt::DecayLcp] cwnd decayed: " << old << " -> " << tcb->m_lcWnd);
-      // schedule next decay
-      Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
-    }
+
+  int prev_m_cWnd = tcb->prev_m_cWnd;
+  tcb->prev_m_cWnd = tcb->m_cWnd;
+  if (!tcb->lcpActive && (int)tcb->m_cWnd < prev_m_cWnd)
+    tcb->m_lcWnd += m_maxCwnd - tcb->m_cWnd;
+
+  if (tcb->m_lcWnd <= 1) {
+    tcb->lcpActive = false;
+    m_maxCwnd = 0;
+    // NS_LOG_UNCOND ("[TcpPpt::DecayLcp] LCP deactivated");
+  }
+  else {
+    // NS_LOG_UNCOND ("[TcpPpt::DecayLcp] cwnd decayed: " << old << " -> " << tcb->m_lcWnd);
+    // schedule next decay
+    Simulator::Schedule (tcb->m_srtt, &TcpPpt::DecayLcp, this, tcb);
+  }
 }
 
 } // namespace ns3
