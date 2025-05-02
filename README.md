@@ -62,10 +62,11 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
 # TODO
   - [ ] Create scripts to automate the below.
 
-  - Foreach of PPT orig, PPT w/ superposition, DCTCP, and Homa:
-    - Foreach of DataMining and WebSearch
-      - [ ] Modify \*example.cc to spit out all FCTs.
-      - [ ] Determine average FCTs 95th and 99th percentiles.
+  - Foreach transport in PPT orig, PPT w/ superposition, DCTCP, and Homa:
+    - Foreach workload in DataMining and WebSearch
+      - Foreach load in 0.3, 0.5, 0.7
+        - [ ] Modify \*example.cc to spit out all FCTs.
+        - [ ] Determine average FCT and 95th and 99th percentiles.
 
 
 
