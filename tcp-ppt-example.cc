@@ -174,6 +174,7 @@ int main(int argc, char *argv[]) {
     double total_fct = 0;
     int n_samples = 0;
 
+    int i = 0;
     for (auto &kv : monitor->GetFlowStats()) {
         const auto &st = kv.second;
 
@@ -195,6 +196,9 @@ int main(int argc, char *argv[]) {
 
         n_samples ++;
         total_fct += t1 - t0;
+
+        std::cout << "FCT " << i++ << ": " <<
+            (total_fct / n_samples * 1000) << "ms" << std::endl;
     }
 
     std::cout << "Average FCT: " <<
