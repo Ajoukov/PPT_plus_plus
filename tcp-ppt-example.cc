@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
     // we add n_sources to prevent overlap
     NodeContainer destinations;
     for (int i = 0; i < n_dests; i++)
-        destinations.Add(servers.Get(i + n_sources));
+        destinations.Add(servers.Get((i + n_sources) % n_servers));
 
     std::vector<InetSocketAddress> sinks;
     for (int i = 0; i < n_sources; i++) {
