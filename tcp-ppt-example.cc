@@ -22,8 +22,8 @@ void PrintTime() {
 }
 
 int main(int argc, char *argv[]) {
-    int n_sources = 15;
-    int n_dests = 15;
+    int n_sources = 144;
+    int n_dests = 144;
     int base_port = 8000;
 
     double sim_time = 10.0; // seconds
