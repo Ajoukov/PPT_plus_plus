@@ -201,8 +201,8 @@ int main(int argc, char *argv[]) {
             (total_fct / n_samples * 1000) << "ms" << std::endl;
     }
 
-    std::cout << "Average FCT: " <<
-        (total_fct / n_samples * 1000) << "ms" << std::endl;
+    // std::cout << "Average FCT: " <<
+    //     (total_fct / n_samples * 1000) << "ms" << std::endl;
 
     Simulator::Destroy();
 }
