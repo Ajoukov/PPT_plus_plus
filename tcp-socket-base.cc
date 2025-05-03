@@ -3634,7 +3634,7 @@ TcpSocketBase::BytesInFlight() const
 uint32_t
 TcpSocketBase::Window() const
 {
- if(m_tcb->lcpActive) return std::min(m_rWnd.Get(), m_tcb->m_lcWnd + m_tcb->m_cWnd.Get());
+ if(m_tcb->lcpActive && m_tcb->lcpTurn ) return std::min(m_rWnd.Get(), m_tcb->m_lcWnd);
  else return std::min(m_rWnd.Get(), m_tcb->m_cWnd.Get());
 }
 
@@ -3643,6 +3643,18 @@ TcpSocketBase::AvailableWindow() const
 {
  uint32_t win = Window();             // Number of bytes allowed to be outstanding
  uint32_t inflight = BytesInFlight(); // Number of outstanding bytes
+ if(m_tcb->lcpActive) {
+        uint32_t max = std::max(m_tcb->m_cWnd.Get(), m_tcb->m_lcWnd);
+        if(m_tcb->lcpTurn && max == m_tcb->m_lcWnd) {
+            inflight -= m_tcb->m_cWnd;
+        }
+        else if(!m_tcb->lcpTurn && max == m_tcb->m_cWnd.Get()){
+            inflight -= m_tcb->m_lcWnd;
+        }
+        else {
+            inflight -= max; 
+        }
+  }
  return (inflight > win) ? 0 : win - inflight;
 }
 
