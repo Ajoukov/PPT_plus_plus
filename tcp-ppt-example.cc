@@ -20,6 +20,12 @@ char PPT_IS_USING_LWD = 0;
 char PPT_IS_USING_SUPERPOSITION = 0;
 char PPT_IS_PRINTING_CWND_SIZES = 0;
 
+double WAIT_TIME_1 = 1.0;
+double WAIT_TIME_2 = 2.0;
+
+// double WAIT_TIME_1 = 0.0;
+// double WAIT_TIME_2 = 0.0;
+
 void PrintTime() {
   std::cout << "Sim time: " << Simulator::Now().GetSeconds() << " s\n";
   Simulator::Schedule(Seconds(0.1), &PrintTime);
@@ -133,7 +139,7 @@ int main(int argc, char *argv[]) {
         PacketSinkHelper ps("ns3::TcpSocketFactory", isa);
         ApplicationContainer apps = ps.Install(destinations.Get(i));
         apps.Start(Seconds(0.0));
-        apps.Stop(Seconds(sim_time + 1.0));
+        apps.Stop(Seconds(sim_time + WAIT_TIME_1));
         sinks.push_back(isa);
     }
 
@@ -164,7 +170,7 @@ int main(int argc, char *argv[]) {
 
                 ApplicationContainer apps = bulk.Install(sources.Get(i));
                 apps.Start(Seconds(t));
-                apps.Stop(Seconds(sim_time + 1.0));
+                apps.Stop(Seconds(sim_time + WAIT_TIME_1));
             });
         }
     }
@@ -176,7 +182,7 @@ int main(int argc, char *argv[]) {
 
     Simulator::Schedule(Seconds(0.0), &PrintTime);
 
-    Simulator::Stop(Seconds(sim_time + 2.0));
+    Simulator::Stop(Seconds(sim_time + WAIT_TIME_2));
     Simulator::Run();
 
     Ptr<Ipv4FlowClassifier> classifier =
