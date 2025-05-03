@@ -60,21 +60,28 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
 
 
 # TODO
-  - [ ] Test ideas:
-    - [ ] Linear window decrease
+  - Test ideas:
+    - [X] Linear window decrease
     - [ ] Exponential window decrease in proportion to state variables rather than simply halving every RTT.
 
-  - [ ] Create scripts to automate the below.
+  - [X] Create scripts to automate the below.
 
   - [ ] Collect cwnd sizes. Create a graph that demonstrates superposition.
 
   - Foreach transport in PPT orig, PPT w/ superposition, DCTCP, and Homa:
     - Foreach workload in DataMining and WebSearch
       - Foreach load in 0.3, 0.5, 0.7
-        - [ ] Modify \*example.cc to spit out all FCTs.
-        - [ ] Determine average FCT and 95th and 99th percentiles.
+        - [X] Modify \*example.cc to spit out all FCTs.
+        - [X] Determine average FCT and 95th and 99th percentiles.
 
-
+  - Results needed:
+    - [ ] Show that sending packets at BDP is bad (don't decrease LCP and increase load 10x)
+    - [ ] Show that LWD > EWD
+    - [ ] Show that superposition > not
+    - [ ] Show that LWD + superposition > EWD + not
+    - [ ] Compare overall performance of PPT++ with PPT, DCTCP, and Cubic
+    - [ ] Show why superposition is important
+    - [ ] Show where LCP can be used + show sum of LCP & HCP
 
 
 
