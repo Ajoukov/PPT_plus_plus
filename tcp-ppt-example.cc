@@ -16,8 +16,9 @@
 
 using namespace ns3;
 
+char PPT_IS_USING_LWD = 0;
 char PPT_IS_USING_SUPERPOSITION = 0;
-char PPT_IS_PRINTING_CWND_SIZES = 0;
+char PPT_IS_PRINTING_CWND_SIZES = 1;
 
 void PrintTime() {
   std::cout << "Sim time: " << Simulator::Now().GetSeconds() << " s\n";
@@ -60,6 +61,7 @@ int main(int argc, char *argv[]) {
             Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpCubic::GetTypeId())); break;
         case (3):
             Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpPpt::GetTypeId()));
+            // PPT_IS_USING_LWD = 1;
             PPT_IS_USING_SUPERPOSITION = 1;
             break;
 
@@ -209,7 +211,7 @@ int main(int argc, char *argv[]) {
 
         total_throughput += st.rxBytes;
 
-        std::cout << "FCT " << i++ << ": " << ((t1 - t0) * 1000) << "ms" << std::endl;
+        std::cout << "Start @" << t0 << "s: FCT " << i++ << ": " << ((t1 - t0) * 1000) << "ms" << std::endl;
     }
 
     std::cout << "Total throughput: " << std::fixed << total_throughput << "bytes" << std::endl;

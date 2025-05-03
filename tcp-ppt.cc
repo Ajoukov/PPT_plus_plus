@@ -5,6 +5,7 @@
 #include <fstream>
 
 extern char PPT_IS_USING_SUPERPOSITION;
+extern char PPT_IS_USING_LWD;
 extern char PPT_IS_PRINTING_CWND_SIZES;
 
 namespace ns3 {
@@ -161,7 +162,11 @@ TcpPpt::DecayLcp (Ptr<TcpSocketState> tcb)
   // uint32_t old = tcb->m_lcWnd;
   // exponential window decrease: half each RTT
 
-  tcb->m_lcWnd = std::max<uint32_t> (1, tcb->m_lcWnd / 2);
+  if (PPT_IS_USING_LWD)
+    tcb->m_lcWnd = std::max<uint32_t> (1, tcb->m_lcWnd - 100);
+  else
+    tcb->m_lcWnd = std::max<uint32_t> (1, tcb->m_lcWnd / 2);
+
   if (PPT_IS_PRINTING_CWND_SIZES) {
     double now = Simulator::Now().GetSeconds ();
     long id = (long)&*tcb;

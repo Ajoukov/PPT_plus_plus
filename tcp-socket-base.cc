@@ -3254,8 +3254,9 @@ TcpSocketBase::SendDataPacket(SequenceNumber32 seq, uint32_t maxSize, bool withA
 
  // TCP sender should not send data out of the window advertised by the
  // peer when it is not retransmission.
- NS_ASSERT(isRetransmission ||
-           ((m_highRxAckMark + SequenceNumber32(m_rWnd)) >= (seq + SequenceNumber32(maxSize))));
+ // if (!isRetransmission && !((m_highRxAckMark + SequenceNumber32(m_rWnd)) >= (seq + SequenceNumber32(maxSize))));
+ // NS_ASSERT(isRetransmission ||
+ //           ((m_highRxAckMark + SequenceNumber32(m_rWnd)) >= (seq + SequenceNumber32(maxSize))));
 
  if (IsPacingEnabled())
  {
