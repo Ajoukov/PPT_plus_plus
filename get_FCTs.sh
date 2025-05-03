@@ -1,6 +1,6 @@
 #!/bin/bash
 
-transports=(0 1) # PPT, DCTCP
+transports=(0 1 3) # PPT, DCTCP, PPT++
 workloads=(0 1) # 0: WebSearch, 1: DataMining
 loads=(0.3 0.5 0.7)
 sim_time=0.1

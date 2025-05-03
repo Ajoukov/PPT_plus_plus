@@ -179,6 +179,7 @@ int main(int argc, char *argv[]) {
         DynamicCast<Ipv4FlowClassifier>(fm.GetClassifier());
 
     double total_fct = 0;
+    double total_throughput = 0;
     int n_samples = 0;
 
     int i = 0;
@@ -204,8 +205,12 @@ int main(int argc, char *argv[]) {
         n_samples ++;
         total_fct += t1 - t0;
 
+        total_throughput += st.rxBytes;
+
         std::cout << "FCT " << i++ << ": " << (t1 - t0) << "ms" << std::endl;
     }
+
+    std::cout << "Total throughput: " << total_throughput << "bytes" << std::endl;
 
     // std::cout << "Average FCT: " <<
     //     (total_fct / n_samples * 1000) << "ms" << std::endl;
