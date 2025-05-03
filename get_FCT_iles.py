@@ -13,7 +13,7 @@ def parse_fct(file_path):
 
 results = []
 
-for file_path in glob.glob("fct_*.log"):
+for file_path in glob.glob("FCTs/fct_*.log"):
     fcts = parse_fct(file_path)
     if not fcts:
         continue

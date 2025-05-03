@@ -4,6 +4,9 @@ transports=(0 1) # PPT, DCTCP
 workloads=(0 1) # 0: WebSearch, 1: DataMining
 loads=(0.3 0.5 0.7)
 sim_time=0.1
+folder="FCTs"
+
+mkdir -p -f $folder
 
 for transport in "${transports[@]}"; do
   for workload in "${workloads[@]}"; do
@@ -16,8 +19,7 @@ for transport in "${transports[@]}"; do
           --transport=${transport} \
           --sim_time=${sim_time} \
            --load=${load} \
-           > ${output_file} 2> ${output_file} &
-          # --load=${load}
+           > $folder/${output_file} 2> $folder/${output_file} &
     done
   done
 done
