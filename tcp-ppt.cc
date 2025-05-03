@@ -4,6 +4,8 @@
 #include "ns3/simulator.h"
 #include <fstream>
 
+extern char PPT_IS_USING_SUPERPOSITION;
+
 namespace ns3 {
 
 static std::ofstream g_lcpLog ("cwnd_sizes.log", std::ios::out);
@@ -109,13 +111,20 @@ TcpPpt::CwndEvent (Ptr<TcpSocketState> tcb,
   // Launch LCP on first ECN indication
   // if (!tcb->lcpActive && event == TcpSocketState::CA_EVENT_ECN_IS_CE)
 
-  if ((int)tcb->m_cWnd < prev_m_cWnd) {
-    tcb->m_lcWnd += m_maxCwnd - tcb->m_cWnd;
-    m_maxCwnd = tcb->m_cWnd;
+  if (PPT_IS_USING_SUPERPOSITION) { // new version
+    if ((int)tcb->m_cWnd < prev_m_cWnd) {
+      tcb->m_lcWnd += m_maxCwnd - tcb->m_cWnd;
+      m_maxCwnd = tcb->m_cWnd;
+    }
+    if (!tcb->lcpActive && (int)tcb->m_cWnd < prev_m_cWnd)
+      TcpPpt::TestFunc(tcb);
+  } else { // old version
+    if (!tcb->lcpActive && (int)tcb->m_cWnd < prev_m_cWnd) {
+      tcb->m_lcWnd += m_maxCwnd - tcb->m_cWnd;
+      m_maxCwnd = tcb->m_cWnd;
+      TcpPpt::TestFunc(tcb);
+    }
   }
-  if (!tcb->lcpActive && (int)tcb->m_cWnd < prev_m_cWnd)
-    TcpPpt::TestFunc(tcb);
-
   { // log
     double now = Simulator::Now().GetSeconds ();
     long id = (long)&*tcb;

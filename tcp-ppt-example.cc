@@ -16,6 +16,8 @@
 
 using namespace ns3;
 
+char PPT_IS_USING_SUPERPOSITION = 0;
+
 void PrintTime() {
   std::cout << "Sim time: " << Simulator::Now().GetSeconds() << " s\n";
   Simulator::Schedule(Seconds(0.1), &PrintTime);
@@ -54,6 +56,11 @@ int main(int argc, char *argv[]) {
             Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpDctcp::GetTypeId())); break;
         case (2):
             Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpCubic::GetTypeId())); break;
+        case (3):
+            Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpPpt::GetTypeId()));
+            PPT_IS_USING_SUPERPOSITION = 1;
+            break;
+
     }
 
     int n_servers = 144;

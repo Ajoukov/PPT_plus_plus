@@ -3388,7 +3388,7 @@ TcpSocketBase::SendDataPacket(SequenceNumber32 seq, uint32_t maxSize, bool withA
  // send will also be cwnd limited if less then one segment of cwnd is available
  m_tcb->m_isCwndLimited = (m_tcb->m_cWnd < BytesInFlight() + m_tcb->m_segmentSize);
  if(m_tcb->lcpActive && m_tcb->lcpTurn) {
-    m_tcb->m_isCwndLimited = (m_tcb-> m_lCwnd  < BytesInFlight() + m_tcb->m_segmentSize);
+    m_tcb->m_isCwndLimited = (m_tcb-> m_lcWnd  < BytesInFlight() + m_tcb->m_segmentSize);
  }
  
 
