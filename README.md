@@ -60,6 +60,10 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
 
 
 # TODO
+  - [ ] Test ideas:
+    - [ ] Linear window decrease
+    - [ ] Exponential window decrease in proportion to state variables rather than simply halving every RTT.
+
   - [ ] Create scripts to automate the below.
 
   - [ ] Collect cwnd sizes. Create a graph that demonstrates superposition.
