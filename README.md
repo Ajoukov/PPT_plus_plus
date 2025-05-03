@@ -75,13 +75,12 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
         - [X] Determine average FCT and 95th and 99th percentiles.
 
   - Results needed:
+    - [X] Show where LCP can be used + show sum of LCP & HCP
     - [ ] Show that sending packets at BDP is bad (don't decrease LCP and increase load 10x)
     - [ ] Show that LWD > EWD
     - [ ] Show that superposition > not
     - [ ] Show that LWD + superposition > EWD + not
     - [ ] Compare overall performance of PPT++ with PPT, DCTCP, and Cubic
     - [X] Show why superposition is important
-    - [X] Show where LCP can be used + show sum of LCP & HCP
-
 
 
