@@ -3387,6 +3387,9 @@ TcpSocketBase::SendDataPacket(SequenceNumber32 seq, uint32_t maxSize, bool withA
  // (in the congestion controls) when flight size is >= cwnd
  // send will also be cwnd limited if less then one segment of cwnd is available
  m_tcb->m_isCwndLimited = (m_tcb->m_cWnd < BytesInFlight() + m_tcb->m_segmentSize);
+ if(m_tcb->lcpActive && m_tcb->lcpTurn) {
+    m_tcb->m_isCwndLimited = (m_tcb-> m_lCwnd  < BytesInFlight() + m_tcb->m_segmentSize);
+ }
  
 
  UpdateRttHistory(seq, sz, isRetransmission);
@@ -3631,7 +3634,7 @@ TcpSocketBase::BytesInFlight() const
 uint32_t
 TcpSocketBase::Window() const
 {
- if(m_tcb->lcpActive && m_tcb->lcpTurn) return std::min(m_rWnd.Get(), m_tcb->m_lcWnd);
+ if(m_tcb->lcpActive) return std::min(m_rWnd.Get(), m_tcb->m_lcWnd + m_tcb->m_cWnd);
  else return std::min(m_rWnd.Get(), m_tcb->m_cWnd.Get());
 }
 
