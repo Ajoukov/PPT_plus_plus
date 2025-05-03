@@ -18,7 +18,7 @@ using namespace ns3;
 
 char PPT_IS_USING_LWD = 0;
 char PPT_IS_USING_SUPERPOSITION = 0;
-char PPT_IS_PRINTING_CWND_SIZES = 1;
+char PPT_IS_PRINTING_CWND_SIZES = 0;
 
 void PrintTime() {
   std::cout << "Sim time: " << Simulator::Now().GetSeconds() << " s\n";
