@@ -29,6 +29,7 @@ for fname in sorted(glob.glob(os.path.join(input_dir, "fct_w*_t*_l*.log"))):
     stats = {
         'mean': np.mean(fcts),
         'median': np.median(fcts),
+        'p50': np.percentile(fcts, 50),
         'p75': np.percentile(fcts, 75),
         'p95': np.percentile(fcts, 95),
         'p99': np.percentile(fcts, 99)

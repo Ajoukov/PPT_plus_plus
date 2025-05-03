@@ -205,14 +205,14 @@ int main(int argc, char *argv[]) {
             continue;
 
         n_samples ++;
-        total_fct += t1 - t0;
+        total_fct += (t1 - t0) * 1000;
 
         total_throughput += st.rxBytes;
 
-        std::cout << "FCT " << i++ << ": " << (t1 - t0) << "ms" << std::endl;
+        std::cout << "FCT " << i++ << ": " << ((t1 - t0) * 1000) << "ms" << std::endl;
     }
 
-    std::cout << "Total throughput: " << total_throughput << "bytes" << std::endl;
+    std::cout << "Total throughput: " << std::fixed << total_throughput << "bytes" << std::endl;
 
     // std::cout << "Average FCT: " <<
     //     (total_fct / n_samples * 1000) << "ms" << std::endl;
