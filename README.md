@@ -80,8 +80,8 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
     - [ ] Show that superposition > not
     - [ ] Show that LWD + superposition > EWD + not
     - [ ] Compare overall performance of PPT++ with PPT, DCTCP, and Cubic
-    - [ ] Show why superposition is important
-    - [ ] Show where LCP can be used + show sum of LCP & HCP
+    - [X] Show why superposition is important
+    - [X] Show where LCP can be used + show sum of LCP & HCP
 
 
 
