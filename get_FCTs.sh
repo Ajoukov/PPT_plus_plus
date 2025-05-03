@@ -6,7 +6,7 @@ loads=(0.3 0.5 0.7)
 sim_time=0.1
 folder="FCTs"
 
-mkdir -p -f $folder
+mkdir -p $folder
 
 for transport in "${transports[@]}"; do
   for workload in "${workloads[@]}"; do

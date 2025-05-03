@@ -204,8 +204,7 @@ int main(int argc, char *argv[]) {
         n_samples ++;
         total_fct += t1 - t0;
 
-        std::cout << "FCT " << i++ << ": " <<
-            (total_fct / n_samples * 1000) << "ms" << std::endl;
+        std::cout << "FCT " << i++ << ": " << (t1 - t0) << "ms" << std::endl;
     }
 
     // std::cout << "Average FCT: " <<

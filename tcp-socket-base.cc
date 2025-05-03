@@ -3634,7 +3634,7 @@ TcpSocketBase::BytesInFlight() const
 uint32_t
 TcpSocketBase::Window() const
 {
- if(m_tcb->lcpActive) return std::min(m_rWnd.Get(), m_tcb->m_lcWnd + m_tcb->m_cWnd);
+ if(m_tcb->lcpActive) return std::min(m_rWnd.Get(), m_tcb->m_lcWnd + m_tcb->m_cWnd.Get());
  else return std::min(m_rWnd.Get(), m_tcb->m_cWnd.Get());
 }
 
