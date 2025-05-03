@@ -17,6 +17,7 @@
 using namespace ns3;
 
 char PPT_IS_USING_SUPERPOSITION = 0;
+char PPT_IS_PRINTING_CWND_SIZES = 0;
 
 void PrintTime() {
   std::cout << "Sim time: " << Simulator::Now().GetSeconds() << " s\n";
@@ -36,12 +37,13 @@ int main(int argc, char *argv[]) {
     double core_rate_gbps = 100e-3;
 
     CommandLine cmd;
-    cmd.AddValue("sim_time",  "Simulation time (s)",            sim_time);
-    cmd.AddValue("load",      "Offered traffic load (0.0-1.0)", load);
-    cmd.AddValue("workload",  "0=WebSearch,1=DataMining",       workload);
-    cmd.AddValue("transport", "0=PPT,1=DCTCP,2=Cubic",          transport);
-    cmd.AddValue("n_sources", "Number of sources",              n_sources);
-    cmd.AddValue("n_dests",   "Number of destinations",         n_dests);
+    cmd.AddValue("sim_time",   "Simulation time (s)",            sim_time);
+    cmd.AddValue("load",       "Offered traffic load (0.0-1.0)", load);
+    cmd.AddValue("workload",   "0=WebSearch,1=DataMining",       workload);
+    cmd.AddValue("transport",  "0=PPT,1=DCTCP,2=Cubic",          transport);
+    cmd.AddValue("n_sources",  "Number of sources",              n_sources);
+    cmd.AddValue("n_dests",    "Number of destinations",         n_dests);
+    cmd.AddValue("print_cwnd", "Print cwnd sizes or not",        PPT_IS_PRINTING_CWND_SIZES);
     cmd.Parse(argc, argv);
 
     // Pareto numbers according to paper
