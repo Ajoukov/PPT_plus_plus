@@ -60,9 +60,12 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
 
 
 # TODO
-  - Test ideas:
-    - [X] Linear window decrease
-    - [ ] Exponential window decrease in proportion to state variables rather than simply halving every RTT.
+  - [X] Linear window decrease
+  - [ ] Determine LWD decay rate based on growth rate
+  - [ ] Explain that the throughput is worse than DCTCP, but that we improve on PPT nonetheless
+    - Optimizing for FCT while failing to reduce starvation
+    - Essentially borrowing an idea from CPU scheduling
+  - [ ] Explain why congestion collapse won't occur
 
   - [X] Collect cwnd sizes. Create a graph that demonstrates superposition.
   - [X] Modify \*example.cc to spit out all FCTs.
