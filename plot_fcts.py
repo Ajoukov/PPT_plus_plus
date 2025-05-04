@@ -17,9 +17,9 @@ transport_labels = {
     0: "PPT",
     1: "DCTCP",
     2: "Cubic",
-    3: "PPT++ (Superposition)"
-    4: "PPT++ (LWD)"
-    5: "PPT++ (Superposition & LWD)"
+    3: "PPT++ (Superposition)",
+    4: "PPT++ (LWD)",
+    5: "PPT++ (Superposition & LWD)",
 }
 
 metric_labels = [
