@@ -67,10 +67,17 @@ int main(int argc, char *argv[]) {
             Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpCubic::GetTypeId())); break;
         case (3):
             Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpPpt::GetTypeId()));
-            // PPT_IS_USING_LWD = 1;
             PPT_IS_USING_SUPERPOSITION = 1;
             break;
-
+        case (4):
+            Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpPpt::GetTypeId()));
+            PPT_IS_USING_LWD = 1;
+            break;
+        case (5):
+            Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpPpt::GetTypeId()));
+            PPT_IS_USING_SUPERPOSITION = 1;
+            PPT_IS_USING_LWD = 1;
+            break;
     }
 
     int n_servers = 144;

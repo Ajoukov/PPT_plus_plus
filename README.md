@@ -77,9 +77,9 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
   - Results needed:
     - [X] Show where LCP can be used + show sum of LCP & HCP
     - [ ] Show that sending packets at BDP is bad (don't decrease LCP and increase load 10x)
-    - [ ] Show that LWD > EWD
-    - [ ] Show that superposition > not
-    - [ ] Show that LWD + superposition > EWD + not
+      - If we get RC3 working we won't need to do this
+    - [ ] Compare LWD and SP to PPT
+      - in progress
     - [ ] Compare overall performance of PPT++ with PPT, DCTCP, and Cubic
     - [X] Show why superposition is important
 

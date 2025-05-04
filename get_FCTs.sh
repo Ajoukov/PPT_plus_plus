@@ -1,9 +1,16 @@
 #!/bin/bash
 
-transports=(0 1 3) # PPT, DCTCP, PPT++
-workloads=(0 1) # 0: WebSearch, 1: DataMining
-loads=(0.3 0.5 0.7)
-sim_time=5.0
+# transports=(0 1 2 3) # PPT, DCTCP, PPT++
+# transports=(0 3) # PPT, DCTCP, PPT++ w/ SP
+# transports=(4 5) # PPT++ w/ LWD, PPT++ w/ SP&LWD
+transports=(0 1 2 3 4 5) # PPT++ w/ LWD, PPT++ w/ SP&LWD
+# transports=(0) # PPT, DCTCP, PPT++
+# workloads=(0 1) # 0: WebSearch, 1: DataMining
+workloads=(0) # 0: WebSearch, 1: DataMining
+# loads=(0.3 0.5 0.7)
+# loads=(0.33 1.0 3.0)
+loads=(0.1)
+sim_time=2.5
 folder="FCTs"
 
 mkdir -p $folder
