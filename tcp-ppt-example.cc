@@ -5,6 +5,14 @@
 #include "ns3/applications-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/rng-seed-manager.h"
+
+uint32_t seed = 1;
+
+#include "ns3/queue.h"
+#include <cstdint>
+#include <iostream>
+#include <vector>
 
 #include "ns3/tcp-ppt.h"
 #include "ns3/tcp-dctcp.h"
@@ -19,6 +27,9 @@ using namespace ns3;
 char PPT_IS_USING_LWD = 0;
 char PPT_IS_USING_SUPERPOSITION = 0;
 char PPT_IS_PRINTING_CWND_SIZES = 0;
+char PPT_IS_USING_BDP = 0;
+
+static std::vector<Ptr<PacketSink>> g_sinks;
 
 double WAIT_TIME_1 = 1.0;
 double WAIT_TIME_2 = 2.0;
@@ -29,6 +40,28 @@ double WAIT_TIME_2 = 2.0;
 void PrintTime() {
   std::cout << "Sim time: " << Simulator::Now().GetSeconds() << " s\n";
   Simulator::Schedule(Seconds(0.1), &PrintTime);
+}
+
+static uint64_t g_queueDrops = 0;
+void QueueDropCallback(Ptr<const Packet> p) {
+  ++g_queueDrops;
+}
+
+static double g_lastTotalRx = 0.0;
+static double g_sampleInterval = 0.1;
+
+void ThroughputMonitor() {
+  double now = Simulator::Now().GetSeconds();
+  double totalRx = 0;
+  for (auto &sink : g_sinks)
+    totalRx += sink->GetTotalRx ();
+
+  double deltaBytes = totalRx - g_lastTotalRx;
+  double gbps = deltaBytes * 8.0 / (g_sampleInterval * 1e9);
+  std::cout << now << "s: Throughput = " << gbps << " Gbps\n";
+
+  g_lastTotalRx = totalRx;
+  Simulator::Schedule(Seconds (g_sampleInterval), &ThroughputMonitor);
 }
 
 int main(int argc, char *argv[]) {
@@ -51,7 +84,11 @@ int main(int argc, char *argv[]) {
     cmd.AddValue("n_sources",  "Number of sources",              n_sources);
     cmd.AddValue("n_dests",    "Number of destinations",         n_dests);
     cmd.AddValue("print_cwnd", "Print cwnd sizes or not",        PPT_IS_PRINTING_CWND_SIZES);
+    cmd.AddValue("seed",       "Print cwnd sizes or not",        seed);
     cmd.Parse(argc, argv);
+
+    RngSeedManager::SetSeed(seed);
+    RngSeedManager::SetRun(1);
 
     // Pareto numbers according to paper
     double alpha = 1.5;
@@ -78,6 +115,10 @@ int main(int argc, char *argv[]) {
             PPT_IS_USING_SUPERPOSITION = 1;
             PPT_IS_USING_LWD = 1;
             break;
+        case (6):
+            Config::SetDefault("ns3::TcpL4Protocol::SocketType", TypeIdValue(TcpPpt::GetTypeId()));
+            PPT_IS_USING_BDP = 1;
+            break;
     }
 
     int n_servers = 144;
@@ -96,10 +137,14 @@ int main(int argc, char *argv[]) {
     PointToPointHelper edge;
     edge.SetDeviceAttribute("DataRate", StringValue(std::to_string(link_rate_gbps) + "Gbps"));
     edge.SetChannelAttribute("Delay", StringValue("0.1ms"));
+    // edge.SetQueue("ns3::DropTailQueue<Packet>", "MaxSize", QueueSizeValue(QueueSize("100p")));
+    // edge.SetQueue("ns3::DropTailQueue<Packet>", "MaxSize", QueueSizeValue(QueueSize("100p")));
 
     PointToPointHelper core;
     core.SetDeviceAttribute("DataRate", StringValue(std::to_string(core_rate_gbps) + "Gbps"));
     core.SetChannelAttribute("Delay", StringValue("0.5ms"));
+    // core.SetQueue("ns3::DropTailQueue<Packet>", "MaxSize", QueueSizeValue(QueueSize("100p")));
+    // core.SetQueue("ns3::DropTailQueue<Packet>", "MaxSize", QueueSizeValue(QueueSize("100p")));
 
     Ipv4AddressHelper addr;
     std::ostringstream subnet;
@@ -148,6 +193,8 @@ int main(int argc, char *argv[]) {
         apps.Start(Seconds(0.0));
         apps.Stop(Seconds(sim_time + WAIT_TIME_1));
         sinks.push_back(isa);
+        Ptr<PacketSink> sink = DynamicCast<PacketSink>(apps.Get(0));
+        g_sinks.push_back(sink);
     }
 
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
@@ -185,9 +232,15 @@ int main(int argc, char *argv[]) {
     FlowMonitorHelper fm;
     auto monitor = fm.InstallAll();
 
+    Config::ConnectWithoutContext(
+      "/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/Drop",
+      MakeCallback(&QueueDropCallback)
+    );
+
     NS_LOG_UNCOND("Starting the simulation");
 
     Simulator::Schedule(Seconds(0.0), &PrintTime);
+    Simulator::Schedule (Seconds (g_sampleInterval), &ThroughputMonitor);
 
     Simulator::Stop(Seconds(sim_time + WAIT_TIME_2));
     Simulator::Run();
@@ -228,6 +281,16 @@ int main(int argc, char *argv[]) {
     }
 
     std::cout << "Total throughput: " << std::fixed << total_throughput << "bytes" << std::endl;
+
+    uint64_t fmDrops = 0;
+    for (auto &kv : monitor->GetFlowStats()) {
+      fmDrops += kv.second.lostPackets;
+    }
+    std::cout << "Total dropped by FlowMonitor: " << fmDrops << std::endl;
+
+    std::cout << "Total queue drops: " << g_queueDrops << std::endl;
+
+
 
     // std::cout << "Average FCT: " <<
     //     (total_fct / n_samples * 1000) << "ms" << std::endl;

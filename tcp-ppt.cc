@@ -6,6 +6,7 @@
 
 extern char PPT_IS_USING_SUPERPOSITION;
 extern char PPT_IS_USING_LWD;
+extern char PPT_IS_USING_BDP;
 extern char PPT_IS_PRINTING_CWND_SIZES;
 
 namespace ns3 {
@@ -164,6 +165,9 @@ TcpPpt::DecayLcp (Ptr<TcpSocketState> tcb)
 
   if (PPT_IS_USING_LWD)
     tcb->m_lcWnd = std::max<uint32_t> (1, tcb->m_lcWnd - 100);
+  else if (PPT_IS_USING_BDP)
+    // tcb->m_lcWnd = std::max<uint32_t> (1, tcb->m_lcWnd / 2);
+    ;
   else
     tcb->m_lcWnd = std::max<uint32_t> (1, tcb->m_lcWnd / 2);
 
