@@ -57,42 +57,6 @@ To analyze cwnd sizes after running a simulation, run the following.
 ```bash
 python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
 ```
-
-
-# TODO
-  - [X] Linear window decrease
-  - [X] Determine LWD decay rate based on growth rate
-  - [X] Explain that the throughput is worse than DCTCP, but that we improve on PPT nonetheless
-    - Optimizing for FCT while failing to reduce starvation
-    - Essentially borrowing an idea from CPU scheduling
-  - [X] Explain why congestion collapse won't occur
-
-  - [X] Collect cwnd sizes. Create a graph that demonstrates superposition.
-  - [X] Modify \*example.cc to spit out all FCTs.
-  - [X] Foreach transport in PPT orig, PPT w/ superposition, DCTCP, and Homa:
-    - Foreach workload in DataMining and WebSearch
-      - Foreach load in 0.3, 0.7
-        - Determine average FCT 50th, 75th, 95th, and 99th percentiles.
-
-  - Results needed:
-    - [X] Show where LCP can be used + show sum of LCP & HCP
-    - [ ] Show that sending packets at BDP is bad (don't decrease LCP and increase load 10x)
-      - If we get RC3 working we won't need to do this
-      - future Sasha: RC3 doesn't work---no open-source NS-3 implementation exists, will need to test
-    - [X] Compare LWD and SP to PPT
-    - [X] Compare overall performance of PPT++ with PPT, and DCTCP
-    - [X] Show why superposition is important
-
-  - Setup:
-    - [X] Make table
-
-  - Digging deeper:
-    - [X] Show that throughput is worse
-    - [X] Show that PPT++ has higher FCT when the network is oversubscribed
-    - [ ] Show that PPT++ does not have lower throughput when we just remove the dual loop mechanism
-    - [ ] Get number of dropped packets
-
-  - [X] Get optimal LWD rate
   - [X] Explain mathematically why priorities lead to lower FCTs but higher starvation
     - [X] Explain starvation
 
