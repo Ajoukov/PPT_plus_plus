@@ -62,7 +62,7 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
 # TODO
   - [X] Linear window decrease
   - [ ] Determine LWD decay rate based on growth rate
-  - [ ] Explain that the throughput is worse than DCTCP, but that we improve on PPT nonetheless
+  - [X] Explain that the throughput is worse than DCTCP, but that we improve on PPT nonetheless
     - Optimizing for FCT while failing to reduce starvation
     - Essentially borrowing an idea from CPU scheduling
   - [ ] Explain why congestion collapse won't occur
@@ -83,5 +83,18 @@ python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
     - [X] Compare overall performance of PPT++ with PPT, and DCTCP
     - [X] Show why superposition is important
 
+  - Setup:
+    - [X] Make table
+
+  - Digging deeper:
+    - [X] Show that throughput is worse
+    - [X] Show that PPT++ has higher FCT when the network is oversubscribed
+    - [ ] Show that PPT++ does not have lower throughput when we just remove the dual loop mechanism
+    - [ ] Get number of dropped packets
+
+  - [ ] Get optimal LWD rate
+  - [ ] Explain mathematically why priorities lead to lower FCTs but higher starvation
+
+  - [ ] Ensure that (cwnd) comes before any usages of ``cwnd''
 
 
