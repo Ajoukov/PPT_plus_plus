@@ -57,9 +57,4 @@ To analyze cwnd sizes after running a simulation, run the following.
 ```bash
 python3 plot_cwnd.py ns-3-dev/cwnd_sizes.log img.png --rank 1
 ```
-  - [X] Explain mathematically why priorities lead to lower FCTs but higher starvation
-    - [X] Explain starvation
-
-  - [X] Ensure that (cwnd) comes before any usages of ``cwnd''
-
 
